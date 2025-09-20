@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
 
 
@@ -22,6 +22,9 @@ def cleaning(df):
 
     # Copy the initial dataframe
     cleaned_df = df.copy()
+
+    # Drop the non-informative column 'id'
+    cleaned_df = cleaned_df.drop('id', axis=1)
 
     # Clean the categorical columns
     categorical_columns = cleaned_df.select_dtypes('object').columns
@@ -53,6 +56,9 @@ def cleaning(df):
     except AssertionError:
         print(f'Numerical ({len(numerical_features)}) and categorical ({len(categorical_features)}) features do not match the total number of features ({cleaned_X.shape[1]})')
 
+    # Label-encode the target class
+    cleaned_df['classification'] = LabelEncoder().fit_transform(cleaned_df['classification'])
+
     return cleaned_df
 
 
@@ -70,7 +76,9 @@ class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
     """
 
 
-    def __init__(self):
+    def __init__(self, numerical_strategy, categorical_strategy):
+        self.numerical_strategy_ = numerical_strategy
+        self.categorical_strategy_ = categorical_strategy
         self.categorical_features_ = None
         self.numerical_features_ = None
         self.preprocessing_ = None
@@ -87,13 +95,13 @@ class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
         # For categorical features : impute the most reccurent value and compute one-hot-encoding
         categorical_preprocessing = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='most_frequent')),
-            ('onehot', OneHotEncoder(handle_unknown='ignore'))
+            ('encoder', self.categorical_strategy_)
         ])
 
         # For numerical features : impute the mean value and compute normalization
         numerical_preprocessing = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='mean')),
-            ('normalization', StandardScaler())
+            ('normalization', self.numerical_strategy_)
         ])
 
         # Apply the preprocessing process
@@ -104,7 +112,7 @@ class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
     
         self.preprocessing_.fit(cleaned_X)
 
-        cat_cols = self.preprocessing_.named_transformers_['categorical'].named_steps['onehot'].get_feature_names_out(self.categorical_features_)
+        cat_cols = self.preprocessing_.named_transformers_['categorical'].named_steps['encoder'].get_feature_names_out(self.categorical_features_)
         num_cols = self.numerical_features_
         self.column_names_ = list(cat_cols) + list(num_cols)
 
