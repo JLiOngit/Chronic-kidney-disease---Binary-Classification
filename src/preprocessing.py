@@ -3,8 +3,8 @@ import numpy as np
 
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import LabelEncoder
+from sklearn.impute import KNNImputer, SimpleImputer
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 
 
@@ -68,17 +68,15 @@ class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
     """
     Preprocess features of the cleaned dataframe with the following steps:
         1) For categorical features :
-            - handle missing values by imputing the most recurrent one.
+            - handle missing values by imputing the most frequent value.
             - Compute one-hot-encoding
         2) For numerical value :
-            - handle missing values by imputing the mean.
-            - Compute normalization
+            - Compute standardization to avoid favorizing numerical feature with a wider spread in KNN method
+            - handle missing values using KNN.
     """
 
 
-    def __init__(self, numerical_strategy, categorical_strategy):
-        self.numerical_strategy_ = numerical_strategy
-        self.categorical_strategy_ = categorical_strategy
+    def __init__(self):
         self.categorical_features_ = None
         self.numerical_features_ = None
         self.preprocessing_ = None
@@ -94,27 +92,26 @@ class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
 
         # For categorical features : impute the most reccurent value and compute one-hot-encoding
         categorical_preprocessing = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='most_frequent')),
-            ('encoder', self.categorical_strategy_)
+            ('simple imputer', SimpleImputer(strategy='most_frequent')),
+            ('one-hot-encoder', OneHotEncoder(drop='if_binary', sparse_output=False)),
         ])
 
-        # For numerical features : impute the mean value and compute normalization
+        # # For numerical features : impute the mean value and compute normalization
         numerical_preprocessing = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='mean')),
-            ('normalization', self.numerical_strategy_)
+            ('standardizer', StandardScaler()),
+            ('KNN imputer', KNNImputer(weights='distance', n_neighbors=8)),
         ])
 
         # Apply the preprocessing process
         self.preprocessing_ = ColumnTransformer(transformers=[
-            ('categorical', categorical_preprocessing, self.categorical_features_),
-            ('numerical', numerical_preprocessing, self.numerical_features_)
+            ('categorical preprocessing', categorical_preprocessing, self.categorical_features_),
+            ('numerical preprocessing', numerical_preprocessing, self.numerical_features_)
         ])
     
         self.preprocessing_.fit(cleaned_X)
 
-        cat_cols = self.preprocessing_.named_transformers_['categorical'].named_steps['encoder'].get_feature_names_out(self.categorical_features_)
-        num_cols = self.numerical_features_
-        self.column_names_ = list(cat_cols) + list(num_cols)
+        cat_cols_transformed = self.preprocessing_.named_transformers_['categorical preprocessing']['one-hot-encoder'].get_feature_names_out(self.categorical_features_)
+        self.column_names_ = list(self.categorical_features_) + list(self.numerical_features_)
 
         return self
     
