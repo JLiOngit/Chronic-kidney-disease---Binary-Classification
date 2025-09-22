@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer, SimpleImputer
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, RobustScaler
 from sklearn.compose import ColumnTransformer
 
 
@@ -57,7 +57,7 @@ def cleaning(df):
         print(f'Numerical ({len(numerical_features)}) and categorical ({len(categorical_features)}) features do not match the total number of features ({cleaned_X.shape[1]})')
 
     # Label-encode the target class
-    cleaned_df['classification'] = LabelEncoder().fit_transform(cleaned_df['classification'])
+    cleaned_df['classification'] = cleaned_df['classification'].map({'ckd': 1, 'notckd': 0})
 
     return cleaned_df
 
@@ -76,7 +76,8 @@ class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
     """
 
 
-    def __init__(self):
+    def __init__(self, scaler=True):
+        self.scaler = scaler
         self.categorical_features_ = None
         self.numerical_features_ = None
         self.preprocessing_ = None
@@ -96,11 +97,17 @@ class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
             ('one-hot-encoder', OneHotEncoder(drop='if_binary', sparse_output=False)),
         ])
 
-        # # For numerical features : impute the mean value and compute normalization
-        numerical_preprocessing = Pipeline(steps=[
-            ('standardizer', StandardScaler()),
-            ('KNN imputer', KNNImputer(weights='distance', n_neighbors=8)),
-        ])
+        # # For numerical features : impute a value using KNN method and optionally scale data
+        if self.scaler:
+            numerical_preprocessing = Pipeline(steps=[
+                ('scaler', StandardScaler()),
+                ('KNN imputer', KNNImputer(weights='distance', n_neighbors=8)),
+            ])
+        else:
+            numerical_preprocessing = Pipeline(steps=[
+                ('KNN imputer', KNNImputer(weights='distance', n_neighbors=8)),
+            ])
+        
 
         # Apply the preprocessing process
         self.preprocessing_ = ColumnTransformer(transformers=[

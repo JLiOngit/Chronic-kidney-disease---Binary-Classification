@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import OneHotEncoder
 
 def numerical_distribution(df, numerical_features, n_rows, n_cols):
     """
@@ -24,23 +23,23 @@ def numerical_distribution(df, numerical_features, n_rows, n_cols):
     # Define the title of the figure
     figure.suptitle('Distribution of numerical features', fontsize=60)
 
-    # Looper over each numericla feature
+    # Looper over each numerical feature
     for (i,feature) in enumerate(numerical_features):
 
         # Calculate the proportion of missing value
         missing_ratio_i = df[feature].isnull().sum() / df.shape[0] * 100
 
-        # Label for the legend
-        label_i = f"{feature} | {missing_ratio_i:.2f}% missing values"
-
         # Plot the graph of distribution with kde
-        fig = sns.histplot(x=df[feature],
+        fig = sns.histplot(data=df,
+                           x=feature,
                            stat='density',
                            kde=True,
                            ax=axes[i],
-                           label=label_i)
+                           hue='classification',
+                           legend=True)
         
         # Set the layout
+        axes[i].set_title(f"{feature} | {missing_ratio_i:.2f}% missing values", fontsize=30)
         axes[i].set_xlabel(feature, fontsize=25)
         axes[i].set_ylabel('Probability density', fontsize=25)
         axes[i].tick_params(axis='x', labelsize=20)
@@ -65,7 +64,7 @@ def categorical_countplot(df, categorical_features, n_rows, n_cols):
         figure, axes
     """
     # Create a figure with a grid of subplots
-    figure, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(40,50))
+    figure, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(60,90))
 
     axes = axes.flatten()
 
@@ -87,11 +86,11 @@ def categorical_countplot(df, categorical_features, n_rows, n_cols):
                             ax=axes[i])
         
         # Set the layout
-        axes[i].set_xlabel(feature, fontsize=25)
-        axes[i].set_ylabel('Counting', fontsize=25)
-        axes[i].tick_params(axis='x', labelsize=20)
-        axes[i].tick_params(axis='y', labelsize=20)
-        axes[i].legend(fontsize=20)
+        axes[i].set_xlabel(feature, fontsize=30)
+        axes[i].set_ylabel('Counting', fontsize=30)
+        axes[i].tick_params(axis='x', labelsize=25)
+        axes[i].tick_params(axis='y', labelsize=25)
+        axes[i].legend(fontsize=30)
 
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     return figure, axes
@@ -119,7 +118,7 @@ def plot_comparison(cleaned_df, preprocessed_df):
 
     figure, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(60,100))
 
-    figure.suptitle("Comparaison before vs. after preprocessing for features with >= 10% missing values", fontsize=100)
+    figure.suptitle("Comparaison before vs. after imputation for features with >= 10% missing values", fontsize=100)
 
     for (i,feature) in enumerate(missing_features):
 
@@ -129,22 +128,25 @@ def plot_comparison(cleaned_df, preprocessed_df):
 
         if feature in numerical_missing_features:
 
-            fig = sns.histplot(x=cleaned_df[feature],
+            fig = sns.histplot(data = cleaned_df,
+                               x=feature,
                                stat='density',
                                kde=True,
                                ax=axes[i,0],
-                               label=label_i)
-            axes[i,0].set_title(f"Before - {feature}", fontsize=35)
+                               hue='classification')
+            axes[i,0].set_title(f"Before - {feature} | {label_i}", fontsize=35)
             axes[i,0].set_xlabel(feature, fontsize=30)
             axes[i,0].set_ylabel('Density', fontsize=30)
             axes[i,0].tick_params(axis='x', labelsize=25)
             axes[i,0].tick_params(axis='y', labelsize=25)
             axes[i,0].legend(fontsize=35)
 
-            fig = sns.histplot(x=preprocessed_df[feature],
+            fig = sns.histplot(data = preprocessed_df,
+                               x = feature,
                                stat='density',
                                kde=True,
-                               ax=axes[i,1])
+                               ax=axes[i,1],
+                               hue='classification')
             axes[i,1].set_title(f"After - {feature}", fontsize=35)
             axes[i,1].set_xlabel(feature, fontsize=30)
             axes[i,1].set_ylabel('Density', fontsize=30)
@@ -189,7 +191,7 @@ def numerical_target(preprocessed_df):
         figure, axes
     """
     copy_df = preprocessed_df.copy()
-    copy_df['Label'] = preprocessed_df['classification'].map({0:'ckd', 1:'not ckd'})
+    copy_df['Label'] = preprocessed_df['classification'].map({1:'ckd', 0:'not ckd'})
 
     numerical_features = [col for col in preprocessed_df.columns if preprocessed_df[col].nunique() > 2]
     
