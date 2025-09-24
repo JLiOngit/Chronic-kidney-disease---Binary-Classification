@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
-from sklearn.decomposition import PCA
+from sklearn.model_selection import cross_validate
+from sklearn.pipeline import Pipeline
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
@@ -11,6 +12,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import precision_score, f1_score
+
+from sklearn.decomposition import PCA
 
 import plotly.express as px
 import plotly.graph_objects as go

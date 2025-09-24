@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
 def numerical_distribution(df, numerical_features, n_rows, n_cols):
     """
     Plot the distributions of multiple numerical features in a grid of subplots, including Kernel Density Estimates (KDE) 

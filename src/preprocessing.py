@@ -63,7 +63,6 @@ def cleaning(df):
 
 
 
-
 class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
     """
     Preprocess features of the cleaned dataframe with the following steps:
@@ -82,7 +81,7 @@ class FeaturesPreprocessing(TransformerMixin, BaseEstimator):
         self.numerical_features_ = None
         self.preprocessing_ = None
         self.column_names_ = None
-    
+
 
     def fit(self, X, y=None):
 
