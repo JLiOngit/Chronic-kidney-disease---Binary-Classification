@@ -31,19 +31,21 @@ def train_evaluate(X, y, features_selection=[], pipeline_positions=[]):
 
     # Initialize all the models
     SVM_RBF = SVC()
+    SVM_Linear = SVC(kernel='linear')
     SVM_Poly2 = SVC(kernel='poly',degree=2)
     SVM_Poly3 = SVC(kernel='poly',degree=3)
     KNN3 = KNeighborsClassifier(n_neighbors=3,weights='distance')
+    KNN3_u = KNeighborsClassifier(n_neighbors=3, weights='uniform')
     KNN8 = KNeighborsClassifier(n_neighbors=8,weights='distance')
-    KNN15 = KNeighborsClassifier(n_neighbors=15,weights='distance')
+    KNN8_u = KNeighborsClassifier(n_neighbors=8,weights='uniform')
     Naive_Bayes = GaussianNB()
     LogReg = LogisticRegression()
     Tree = DecisionTreeClassifier()
     Forest = RandomForestClassifier()
 
     # List all the models and their name
-    models = [SVM_RBF,SVM_Poly2,SVM_Poly3,KNN3,KNN8,KNN15,Naive_Bayes,LogReg,Tree,Forest]
-    names = ["SVM RBF", "SVM Poly2", "SVM Poly3", "KNN3", "KNN8", "KNN15", "Naive Bayes", "Logistic Regression", "Decision Tree", "Random Forest"]
+    models = [SVM_RBF, SVM_Linear, SVM_Poly2,SVM_Poly3,KNN3,KNN3_u,KNN8,KNN8_u,Naive_Bayes,LogReg,Tree,Forest]
+    names = ["SVM RBF", "SVM Linear", "SVM Poly2", "SVM Poly3", "KNN3", "KNN3 uni", "KNN8", "KNN8 uni", "Naive Bayes", "Logistic Regression", "Decision Tree", "Random Forest"]
 
     # Initialize the score dataframe
     scores_df = pd.DataFrame(columns=['model name', 'training score', 'test score'])
@@ -65,7 +67,7 @@ def train_evaluate(X, y, features_selection=[], pipeline_positions=[]):
                 pipeline.steps.insert(index, feature_selection)
         
         # Calculate training and test F1 scores using cross validation
-        results = cross_validate(pipeline, X, y, cv=5, scoring='f1', return_train_score=True)
+        results = cross_validate(pipeline, X, y, cv=3, scoring='f1', return_train_score=True)
         scores_df.loc[scores_df.shape[0]] = [model_name, results['train_score'].mean(), results['test_score'].mean()]
     
     return scores_df

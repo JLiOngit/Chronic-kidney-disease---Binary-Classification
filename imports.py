@@ -11,9 +11,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
-from sklearn.metrics import precision_score, f1_score
+from sklearn.metrics import precision_score, f1_score, silhouette_score
 
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 
 import plotly.express as px
 import plotly.graph_objects as go

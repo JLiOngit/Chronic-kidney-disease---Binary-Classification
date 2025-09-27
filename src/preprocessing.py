@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer, SimpleImputer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler, RobustScaler
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, RobustScaler, MinMaxScaler
 from sklearn.compose import ColumnTransformer
 
 
