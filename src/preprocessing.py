@@ -54,7 +54,7 @@ def cleaning(df):
     try:
         assert len(numerical_features) + len(categorical_features) == cleaned_df.shape[1]
     except AssertionError:
-        print(f'Numerical ({len(numerical_features)}) and categorical ({len(categorical_features)}) features do not match the total number of features ({cleaned_X.shape[1]})')
+        print(f'Numerical ({len(numerical_features)}) and categorical ({len(categorical_features)}) features do not match the total number of features ({cleaned_df.shape[1]})')
 
     # Label-encode the target class
     cleaned_df['classification'] = cleaned_df['classification'].map({'ckd': 1, 'notckd': 0})
